@@ -134,31 +134,31 @@ parser code {:
 
       String res;
       
-      if(! symT.containsKey(e1)) {
-           report_fatal_error("Variavel nao declarada: " + e1, null);
-      }   
+      // if(! symT.containsKey(e1)) {
+      //      report_fatal_error("Variavel nao declarada: " + e1, null);
+      // }   
 
-      if(e2 == null){
-         table_symbol te1 = symT.get(e1);
-         String tp1 = te1.getTipo();
-         res = tp1;
-      } else {
-         if(! symT.containsKey(e2)) {
-           report_fatal_error("Variavel nao declarada: " + e1, null);
-         }
-         table_symbol te1 = symT.get(e1);
-         table_symbol te2 = symT.get(e2);
+      // if(e2 == null){
+      //    table_symbol te1 = symT.get(e1);
+      //    String tp1 = te1.getTipo();
+      //    res = tp1;
+      // } else {
+      //    if(! symT.containsKey(e2)) {
+      //      report_fatal_error("Variavel nao declarada: " + e1, null);
+      //    }
+      //    table_symbol te1 = symT.get(e1);
+      //    table_symbol te2 = symT.get(e2);
 
-         String tp1 = te1.getTipo();
-         String tp2 = te2.getTipo();
+      //    String tp1 = te1.getTipo();
+      //    String tp2 = te2.getTipo();
 
-         if(tp1.equals(tp2)){
-           res = tp1;
-         } else {
-           res =  "FLOAT";
-         }
-      }
-      return res;
+      //    if(tp1.equals(tp2)){
+      //      res = tp1;
+      //    } else {
+      //      res =  "FLOAT";
+      //    }
+      // }
+      return "FLOAT";
     }
 
 
@@ -284,8 +284,8 @@ parser code {:
 
     }
 
-    public void emit_func(String id){
-       System.out.print(id + "(");
+    public void emit_func(String id, String e){
+       System.out.print(id + "(" + e +");\n");
     }
 
     public void emit_inteiro(){
@@ -337,7 +337,7 @@ terminal String     FLOATT;
 
 /* Non terminals */
 non terminal            s, program, list_command, command, assign , writel, readl, declare_variable, iff, for, while, list_param, param, listafuncao, func, chamafunc, vetor_list;
-non terminal  String    expr, expr_vetor, expr_list, vetor, tipo;      // used to store evaluated subexpressions
+non terminal  String    expr, expr_list, vetor, tipo;      // used to store evaluated subexpressions
 
 /* Precedences */
 
@@ -455,9 +455,9 @@ declare_variable ::=  tipo:t  ID:id
                       SEMI         {: emit_semi(); :}
                     | tipo:t ID:id {: format_code(); emit_declare_variable_without_value(id,t); :} 
                       SEMI         {: emit_semi();  :}
-                    | tipo:t ID:id    /* Ta dando warning */  {: format_code(); emit_declare_variable_without_value(id,t); System.out.print("="); :}
+                    | tipo:t ID:id 
                       ATTRIB       
-                      chamafunc      
+                      chamafunc:f    {: format_code(); emit_declare_variable_without_value(id,t); System.out.print("=" +f+";\n"); :} 
                     | tipo:t ID:id LBRCKT INTT:i RBRCKT SEMI {: emit_declare_vector(t,id,i); emit_semi(); :}
                     ;
 
@@ -477,25 +477,17 @@ assign		::=   ID:id
                   chamafunc  
                 ;
 
-chamafunc ::=    ID:id LPAREN {: emit_func(id); :}
-                 expr_list RPAREN {: System.out.print(");\n"); :}
-                 SEMI
-               | ID:id LPAREN {: emit_func(id); :}
-                 RPAREN SEMI
-               | ID:id LPAREN vetor_list RPAREN  SEMI
+chamafunc ::=    ID:id LPAREN 
+                 expr:e RPAREN 
+                 SEMI {: RESULT = id + "("+ e +")"; :}
+               | ID:id LPAREN 
+                 RPAREN SEMI {: RESULT = id + "()"; :}
+               | ID:id LPAREN vetor RPAREN  SEMI
                ;
 
-vetor_list ::=   vetor_list {: System.out.print(", "); :}
-                 vetor 
-               | vetor 
-               ;
-
-vetor ::= ID:id LBRCKT INTT:i RBRCKT {:RESULT = id+"["+i+"]"; :}
+vetor ::= vetor ID:id LBRCKT INTT:i RBRCKT {:RESULT = id+"["+i+"]"; :}
+         | ID:id LBRCKT INTT:i RBRCKT {:RESULT = id+"["+i+"]"; :}
        ;
-
-expr_vetor ::= expr_vetor:ev1 PLUS expr_vetor:ev2 {: RESULT =  ev1 + "+" + ev2;  :}
-             | ID:id LBRCKT INTT:i RBRCKT {: RESULT = id ; :}
-            ;
 
 expr_list ::= expr_list  expr:e
 	         | expr:e
@@ -517,7 +509,7 @@ expr     ::= expr:e1  PLUS  expr:e2       {: RESULT =  e1 + "+" + e2;  symT.put(
              expr:e1                      {: RESULT =  "(" + e1  + ")";symT.put(RESULT,new table_symbol(check_expr(e1,null),RESULT)); :} 
              RPAREN   
            | ID:i                         {: RESULT = i;                                                          :}
-           | ID:id LBRCKT INTT:i RBRCKT     {:  RESULT = check_id(id,i);                                         :}
+           | vetor:v                      {: RESULT = v;                                         :}
            | INTT: n                      {: RESULT = n;  symT.put(n,new table_symbol("INT",n));                  :}
            | FLOATT:n                     {: RESULT = n;  symT.put(n,new table_symbol("FLOAT",n));                :}
 	        ;	  

@@ -19,6 +19,7 @@ int main(){
    float    m1;
    float    a1;
    int    paulo;
+   int    aj=f(a+b);
    float jk[50];
    jk[1]=2;
    if(((jk[2]+jk[1])>3)){
@@ -29,7 +30,7 @@ int main(){
       printf("\n%d",c);
    }
    while((a>c&&b>c)||c>a){
-      printf("\n%d",a*10);
+      printf("\n%f",a*10);
       a=a-1;
    }
    paulo=3;
@@ -41,7 +42,7 @@ int main(){
    printf("\n%d",5);
    printf("\n%f",8.7);
    printf("\n%f",a*b-f1);
-   printf("\n%d",b+c-(b/c*d+!c));
+   printf("\n%f",b+c-(b/c*d+!c));
    printf("\n%f",m1+d);
    printf("\n%d",paulo);
    printf("\n%d",d);

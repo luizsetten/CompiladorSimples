@@ -1,0 +1,523 @@
+/*
+  This example comes from a short article series in the Linux 
+  Gazette by Richard A. Sevenich and Christopher Lopes, titled
+  "Compiler Construction Tools". The article series starts at
+
+  http://www.linuxgazette.com/issue39/sevenich.html
+
+  Small changes and updates to newest JFlex+Cup versions 
+  by Gerwin Klein
+*/
+
+/*
+  Commented By: Christopher Lopes
+  File Name: ycalc.cup
+  To Create: > java java_cup.Main < ycalc.cup
+*/
+   
+   
+/* ----------------------Preliminary Declarations Section--------------------*/
+   
+/* Import the class java_cup.runtime.*  */
+import java_cup.runtime.*;
+import java.util.*;
+import java.util.Stack;
+
+
+   
+/* Parser code to change the way the parser reports errors (include
+   line and column number of the error). */
+parser code {:
+
+  //classe para permitir salvar tipo do token e o valor.
+  class table_symbol {
+
+       private String tipo;
+       private String valor;
+
+       table_symbol(String tipo, String valor){
+          this.tipo = tipo;
+          this.valor = valor;
+       }
+
+         table_symbol(String tipo){
+          this.tipo = tipo;
+       }
+
+       public String getTipo(){
+          return tipo;
+       }
+
+       public String getValor(){
+          return valor;
+       }
+
+       public void setValor(String valor){
+          this.valor = valor;
+       }
+
+  }
+
+/** table of declared symbols -- contains production parts indexed by name */
+   private Hashtable<String, table_symbol> symT = new Hashtable<String, table_symbol>();
+   private static final String LEFT_PAR = "(";
+   private static final String RIGHT_PAR = ")";
+   private int POS = 0;
+      
+    /* Change the method report_error so it will display the line and
+       column of where the error occurred in the input as well as the
+       reason for the error which is passed into the method in the
+       String 'message'. */
+    public void report_error(String message, Object info) {
+   
+        /* Create a StringBuilder called 'm' with the string 'Error' in it. */
+        StringBuilder m = new StringBuilder("Error");
+   
+        /* Check if the information passed to the method is the same
+           type as the type java_cup.runtime.Symbol. */
+        if (info instanceof java_cup.runtime.Symbol) {
+            /* Declare a java_cup.runtime.Symbol object 's' with the
+               information in the object info that is being typecasted
+               as a java_cup.runtime.Symbol object. */
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+   
+            /* Check if the line number in the input is greater or
+               equal to zero. */
+            if (s.left >= 0) {                
+                /* Add to the end of the StringBuilder error message
+                   the line number of the error in the input. */
+                m.append(" in line "+(s.left+1));   
+                /* Check if the column number in the input is greater
+                   or equal to zero. */
+                if (s.right >= 0)                    
+                    /* Add to the end of the StringBuilder error message
+                       the column number of the error in the input. */
+                    m.append(", column "+(s.right+1));
+            }
+        }
+   
+        /* Add to the end of the StringBuilder error message created in
+           this method the message that was passed into this method. */
+        m.append(" : "+message);
+   
+        /* Print the contents of the StringBuilder 'm', which contains
+           an error message, out on a line. */
+        System.err.println(m);
+    }
+   
+    /* Change the method report_fatal_error so when it reports a fatal
+       error it will display the line and column number of where the
+       fatal error occurred in the input as well as the reason for the
+       fatal error which is passed into the method in the object
+       'message' and then exit.*/
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+
+    public void format_code(){
+       for(int i=0; i < POS * 3; i++){
+          System.out.print(" ");
+       }
+    }
+
+    
+    public void update_symT(String id, String valor){
+
+       table_symbol t = symT.get(id);
+       t.setValor(valor);
+       symT.replace(id,t);
+
+    }
+
+    public String check_expr(String e1, String e2){
+
+      String res;
+      
+      if(! symT.containsKey(e1)) {
+           report_fatal_error("Variavel nao declarada: " + e1, null);
+      }   
+
+      if(e2 == null){
+         table_symbol te1 = symT.get(e1);
+         String tp1 = te1.getTipo();
+         res = tp1;
+      } else {
+         if(! symT.containsKey(e2)) {
+           report_fatal_error("Variavel nao declarada: " + e1, null);
+         }
+         table_symbol te1 = symT.get(e1);
+         table_symbol te2 = symT.get(e2);
+
+         String tp1 = te1.getTipo();
+         String tp2 = te2.getTipo();
+
+         if(tp1.equals(tp2)){
+           res = tp1;
+         } else {
+           res =  "FLOAT";
+         }
+      }
+      return res;
+    }
+
+
+
+    /**************** emit code *****************/
+
+    public void emit_program(){
+
+       System.out.print("#include<stdio.h>\n");
+       System.out.print("#include<stdlib.h>\n");
+       System.out.print("\nint main()");
+
+    }
+
+    public void emit_startprogram(){
+
+       System.out.print("{\n");
+
+    }
+
+ 
+     public void emit_endprg(){
+
+       System.out.print("}\n");
+
+    }
+
+     public void emit_return(){
+
+       System.out.print("return 0;\n");
+
+    }
+
+    public void emit_semi(){
+        System.out.print(";\n");
+    }
+
+    public void emit_declare_variable_with_value(String id, String value, String tipo){
+
+       if(symT.containsKey(id)){
+          report_fatal_error("Variável duplicada [" + id + "]",null);
+       }
+       symT.put(id,new table_symbol(tipo,value));
+       System.out.print(id + "=" + value); 
+              
+    }
+
+    public void emit_declare_variable_without_value(String id, String tipo){
+
+      if(symT.containsKey(id)){
+          report_fatal_error("Variável duplicada [" + id + "]",null);
+       } 
+
+       symT.put(id,new table_symbol(tipo));
+       System.out.print(id); 
+    }
+
+    public void emit_assign_id_expr(String id, String value){
+      
+       if(! symT.containsKey(id)) {
+           report_fatal_error("Variavel nao declarada: " + id, null);
+      } else {    
+
+            System.out.print(id + "=" + value); 
+            update_symT(id,value);
+      }
+  
+
+    }
+    
+    public void emit_if(String e){
+
+       System.out.print("if(" + e + ")");
+    }
+
+
+    public void emit_escreva(String id){
+
+      if(! symT.containsKey(id)) {
+           report_fatal_error("Variavel nao declarada: " + id, null);
+      } else {    
+
+         String tipo = (symT.get(id)).getTipo();
+
+         if(tipo.equals("INT")) {
+            System.out.print("printf(\"\\n%d\"," + id + ")") ;
+         } else {
+            System.out.print("printf(\"\\n%f\"," + id + ")");
+         }   
+      }
+    }
+
+        public void emit_leia(String id){
+
+      if(! symT.containsKey(id)) {
+           report_fatal_error("Variavel nao declarada: " + id, null);
+      } else {    
+         String tipo = (symT.get(id)).getTipo();
+
+         if(tipo.equals("INT")) {
+            System.out.print("scanf(\"%d\",&" + id + ")");
+         } else {
+            System.out.print("scanf(\"%f\",&" + id + ")");
+         }   
+      }
+    }
+
+    public void emit_for(String id, String i1, String i2, String i3){
+       System.out.print("for(" + id + "=" + i1 + ";" + id + "<" + i2 + ";" + id + "+=" + i3 + "){\n" );
+    }
+
+    public void emit_else(){
+       System.out.print("else{\n");
+    }
+
+    public void emit_while(String e){
+      System.out.print("while(" + e + "){\n");     
+    }
+
+    public void emit_vector(String id, String num){
+
+      System.out.print(id + "[" + num + "];\n");
+
+    }
+
+    public void emit_func(String id){
+       System.out.print(id + "(");
+    }
+
+    public void emit_inteiro(){
+       System.out.print("int ");
+    }
+
+    public void emit_flutuante(){
+       System.out.print("float ");
+    }
+
+    public void emit_declare_vector(String t, String id, String i){
+
+      if(symT.containsKey(id)){
+          report_fatal_error("Variável duplicada [" + id + "]",null);
+       } 
+
+       symT.put(id,new table_symbol(t));
+       System.out.print(id + "["+i+"]");
+
+    }
+
+    public String check_id( String id, String i){
+
+      if(! symT.containsKey(id)){
+          report_fatal_error("Variável Não declarada [" + id + "]",null);
+      } 
+
+      symT.put(id+"["+i+"]",new table_symbol("TANTOFAZ"));
+      
+      return id+"["+i+"]";
+
+    }
+
+    public void emit_assign_vector(String v, String e){
+       System.out.print(v+"="+e+";\n");
+    }
+
+:};
+   
+
+   
+/* ------------Declaration of Terminals and Non Terminals Section----------- */
+/* Terminals (tokens returned by the scanner). */
+terminal            PLUS, MINUS, TIMES, DIVIDE,  LPAREN, RPAREN, LBRCKT, RBRCKT, EQUALS, GREATER,LESS, PROGRAM, STARTPRG, ENDPRG, READLINE, WRITELINE,DECLINT,DECLFLOAT, E, OU, NAO;
+terminal            IFF, SEMI, THENN,  ELSEE, ENDELSE, ATTRIB, PARA, DE, ATE, PASSO, FACA, FIMPARA, ENQUANTO, FIMENQUANTO, FUNCAO, STARTFUNC, ENDFUNC, RETORNO;
+terminal String	  ID;
+terminal String     INTT;        // our scanner provides numbers as integers
+terminal String     FLOATT;
+
+/* Non terminals */
+non terminal            s, program, list_command, command, assign , writel, readl, declare_variable, iff, for, while, list_param, param, listafuncao, func, chamafunc, vetor_list;
+non terminal  String    expr, expr_vetor, expr_list, vetor, tipo;      // used to store evaluated subexpressions
+
+/* Precedences */
+
+precedence left FUNCAO, PROGRAM;
+precedence left DECLINT, DECLFLOAT;
+precedence left INTT,FLOATT;
+precedence left EQUALS;
+precedence left PROGRAM, FUNCAO ;
+precedence left THENN, ELSEE ;
+precedence left ATTRIB,ID;
+precedence left GREATER, LESS;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+precedence left LPAREN, RPAREN;
+precedence left LBRCKT, RBRCKT; 
+precedence left E, OU, NAO;
+
+
+
+/* The grammar rules */
+
+s ::=         listafuncao
+              program
+              ;
+
+listafuncao ::=  listafuncao func
+               | /* empty */
+               ;            
+
+func  ::=     FUNCAO tipo ID
+              LPAREN list_param RPAREN
+              STARTFUNC
+              list_command
+              RETORNO expr_list SEMI
+              ENDFUNC
+            | FUNCAO ID
+              LPAREN list_param RPAREN
+              STARTFUNC
+              list_command
+              ENDFUNC
+            ;
+
+         
+list_param ::=   list_param param
+               | /* empty */
+               ;
+
+program ::= PROGRAM     {: emit_program();               :} 
+            STARTPRG    {: emit_startprogram() ; POS++;  :} 
+            list_command 
+            ENDPRG       {: format_code(); emit_return(); POS--; format_code(); emit_endprg() ;        :}
+            ;
+
+list_command ::= list_command command
+            |  /* empty */
+            ;
+
+command ::=    declare_variable  
+            |  assign           
+            |  writel            
+            |  readl             
+            |  iff               
+            |  for
+            |  while
+            |  chamafunc
+            ;
+
+writel      ::= WRITELINE
+                expr:value {: format_code(); emit_escreva(value);  :}                                                   
+                SEMI       {: emit_semi();          :}
+            ;
+
+readl      ::= READLINE ID:id  {: format_code(); emit_leia(id);   :}
+               SEMI            {: emit_semi();     :}
+            ;
+
+iff         ::= IFF             
+                expr:e           {: format_code(); emit_if(e);  :}
+                THENN            {: emit_startprogram(); POS++; :} 
+                list_command     
+                ELSEE            {: POS--; format_code(); emit_endprg(); format_code(); emit_else(); POS++; :}
+                list_command
+                ENDELSE          {:POS--; format_code(); System.out.print("}\n"); :}
+               
+            ;
+
+for         ::= PARA ID:id 
+                DE INTT:i1
+                ATE INTT:i2
+                PASSO INTT:i3 
+                FACA          {: format_code(); emit_for(id,i1,i2,i3); POS++; :}
+                list_command
+                FIMPARA       {: POS--; format_code(); emit_endprg(); :}
+            ;
+
+while       ::= ENQUANTO expr:e 
+                FACA          {: format_code(); emit_while(e); POS++; :}
+                list_command
+                FIMENQUANTO   {: POS--; format_code(); emit_endprg(); :}
+            ;
+
+param ::=     tipo ID
+            | tipo vetor
+            ;
+
+tipo ::=      DECLINT:t   {: RESULT = "INT"  ; format_code();  emit_inteiro();   :}
+            | DECLFLOAT:t {: RESULT = "FLOAT"; format_code();  emit_flutuante(); :}
+            ;
+   
+
+
+declare_variable ::=  tipo:t  ID:id    
+                      ATTRIB
+                      expr:value   {: format_code(); emit_declare_variable_with_value(id,value,t);  :}
+                      SEMI         {: emit_semi(); :}
+                    | tipo:t ID:id {: format_code(); emit_declare_variable_without_value(id,t); :} 
+                      SEMI         {: emit_semi();  :}
+                    | tipo:t ID:id    /* Ta dando warning */  {: format_code(); emit_declare_variable_without_value(id,t); System.out.print("="); :}
+                      ATTRIB       
+                      chamafunc      
+                    | tipo:t ID:id LBRCKT INTT:i RBRCKT SEMI {: emit_declare_vector(t,id,i); emit_semi(); :}
+                    ;
+
+
+assign		::=   ID:id 
+                  ATTRIB 
+                  expr:value        {: format_code(); emit_assign_id_expr(id,value); :} 
+                  SEMI              {: emit_semi(); :}
+                | ID
+                  ATTRIB
+                  chamafunc 
+                | vetor:v
+                  ATTRIB
+                  expr:e SEMI {: format_code(); emit_assign_vector(v,e); :}
+                | vetor THENN
+                  ATTRIB
+                  chamafunc  
+                ;
+
+chamafunc ::=    ID:id LPAREN {: emit_func(id); :}
+                 expr_list RPAREN {: System.out.print(");\n"); :}
+                 SEMI
+               | ID:id LPAREN {: emit_func(id); :}
+                 RPAREN SEMI
+               | ID:id LPAREN vetor_list RPAREN  SEMI
+               ;
+
+vetor_list ::=   vetor_list {: System.out.print(", "); :}
+                 vetor 
+               | vetor 
+               ;
+
+vetor ::= ID:id LBRCKT INTT:i RBRCKT {:RESULT = id+"["+i+"]"; :}
+       ;
+
+expr_vetor ::= expr_vetor:ev1 PLUS expr_vetor:ev2 {: RESULT =  ev1 + "+" + ev2;  :}
+             | ID:id LBRCKT INTT:i RBRCKT {: RESULT = id ; :}
+            ;
+
+expr_list ::= expr_list  expr:e
+	         | expr:e
+            ;
+
+
+
+expr     ::= expr:e1  PLUS  expr:e2       {: RESULT =  e1 + "+" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+	        | expr:e1 MINUS expr:e2        {: RESULT =  e1 + "-" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 TIMES expr:e2        {: RESULT =  e1 + "*" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+	        | expr:e1 DIVIDE expr:e2       {: RESULT =  e1 + "/" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 EQUALS expr:e2       {: RESULT =  e1 + "==" + e2; symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 GREATER expr:e2      {: RESULT =  e1 + ">" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 LESS expr:e2         {: RESULT =  e1 + "<" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 E expr:e2            {: RESULT =  e1 + "&&" + e2; symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           | expr:e1 OU expr:e2           {: RESULT =  e1 + "||" + e2; symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
+           |  NAO expr:e1                {: RESULT =   "!" + e1;  symT.put(RESULT,new table_symbol(check_expr(e1,null),RESULT));  :}
+           | LPAREN  
+             expr:e1                      {: RESULT =  "(" + e1  + ")";symT.put(RESULT,new table_symbol(check_expr(e1,null),RESULT)); :} 
+             RPAREN   
+           | ID:i                         {: RESULT = i;                                                          :}
+           | ID:id LBRCKT INTT:i RBRCKT     {:  RESULT = check_id(id,i);                                         :}
+           | INTT: n                      {: RESULT = n;  symT.put(n,new table_symbol("INT",n));                  :}
+           | FLOATT:n                     {: RESULT = n;  symT.put(n,new table_symbol("FLOAT",n));                :}
+	        ;	  

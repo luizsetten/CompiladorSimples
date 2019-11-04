@@ -124,7 +124,7 @@ comment =  {commentinicio}{commentbody}{commentfim} | \/\/[a-zA-Z0-9 \t]*
     "+"                {  return symbol(sym.PLUS);     }
     "-"                {  return symbol(sym.MINUS);    }
     "*"                {  return symbol(sym.TIMES);    }
-    "div"                {  return symbol(sym.DIVIDE);   }
+    "/"                {  return symbol(sym.DIVIDE);   }
     "("                {  return symbol(sym.LPAREN);   }
     ")"                {  return symbol(sym.RPAREN);   }
     "["                {  return symbol(sym.LBRCKT);   }

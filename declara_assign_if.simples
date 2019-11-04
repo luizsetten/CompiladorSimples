@@ -1,3 +1,11 @@
+funcao inteiro teste( inteiro fg flutuante bg)
+funcaoinicio
+    flutuante num1;
+    leia num1;
+    escreva num1;
+    retorno 2+1;
+funcaofim
+
 programa
 inicio
     inteiro numero ;
@@ -8,7 +16,6 @@ inicio
     escreva i;
     escreva numero;
     fimpara
- 
     escreva numero ;
     inteiro a;
     inteiro b <- 4;
@@ -21,7 +28,7 @@ inicio
     inteiro paulo;
     inteiro aj <- f( a + b);
     flutuante jk[50];
-    jk[1] <- 2;
+    jk[2] <- 2;
     se((jk[2] + jk[1])>3) entao 
         escreva a;
     senao
@@ -34,7 +41,7 @@ inicio
       a <- a - 1 ;
     fimenquanto
     paulo <- 3;
-
+    lp[2] <- 5;
     a <- 9;
     d <- a * b - m;
 
@@ -45,7 +52,7 @@ inicio
     escreva 5;
     escreva 8.7;
     escreva a * b - f1;
-    escreva b + c - (b div c * d + nao c);
+    escreva b + c - (b / c * d + nao c);
     escreva m1 + d;
     escreva paulo;
     escreva d;

@@ -226,7 +226,6 @@ parser code {:
             System.out.print(id + "=" + value); 
             update_symT(id,value);
       }
-  
 
     }
     
@@ -237,7 +236,7 @@ parser code {:
 
 
     public void emit_escreva(String id){
-
+      
       if(! symT.containsKey(id)) {
            report_fatal_error("Variavel nao declarada: " + id, null);
       } else {    
@@ -252,7 +251,8 @@ parser code {:
       }
     }
 
-        public void emit_leia(String id){
+
+   public void emit_leia(String id){
 
       if(! symT.containsKey(id)) {
            report_fatal_error("Variavel nao declarada: " + id, null);
@@ -265,81 +265,127 @@ parser code {:
             System.out.print("scanf(\"%f\",&" + id + ")");
          }   
       }
-    }
+   }
 
-    public void emit_for(String id, String i1, String i2, String i3){
-       System.out.print("for(" + id + "=" + i1 + ";" + id + "<" + i2 + ";" + id + "+=" + i3 + "){\n" );
-    }
 
-    public void emit_else(){
-       System.out.print("else{\n");
-    }
+   public void emit_for(String id, String i1, String i2, String i3){
+      System.out.print("for(" + id + "=" + i1 + ";" + id + "<" + i2 + ";" + id + "+=" + i3 + "){\n" );
+   }
 
-    public void emit_while(String e){
+   public void emit_else(){
+      System.out.print("else{\n");
+   }
+
+
+   public void emit_while(String e){
       System.out.print("while(" + e + "){\n");     
-    }
+   }
 
-    public void emit_vector(String id, String num){
+
+   public void emit_vector(String id, String num){
 
       System.out.print(id + "[" + num + "];\n");
 
-    }
+   }
 
-    public void emit_func(String id, String e){
-       System.out.print(id + "(" + e +");\n");
-    }
 
-    public void emit_inteiro(){
-       System.out.print("int ");
-    }
+   public void emit_func(String id, String e){
+      System.out.print(id + "(" + e +");\n");
+   }
 
-    public void emit_flutuante(){
-       System.out.print("float ");
-    }
 
-    public void emit_declare_vector(String t, String id, String i){
+   public void emit_inteiro(){
+      System.out.print("int ");
+   }
+
+
+   public void emit_flutuante(){
+      System.out.print("float ");
+   }
+
+
+   public void emit_declare_vector(String t, String id, String i){
 
       if(symT.containsKey(id)){
-          report_fatal_error("Variável duplicada [" + id + "]",null);
+         report_fatal_error("Variável duplicada [" + id + "]",null);
       } 
 
       symT.put(id,new table_symbol(t));
       System.out.print(id + "["+i+"]");
 
-    }
+   }
 
-    public String check_id( String id, String i){
+
+   public String check_id( String id, String i){
 
       if(! symT.containsKey(id)){
-          report_fatal_error("Variável Não declarada [" + id + "]",null);
+         report_fatal_error("Variável Não declarada [" + id + "]",null);
       } 
 
       symT.put(id+"["+i+"]",new table_symbol("TANTOFAZ"));
       
       return id+"["+i+"]";
 
-    }
+   }
 
-    public void emit_assign_vector(String v, String e){
-       System.out.print(v+"="+e+";\n");
-    }
+
+   public void emit_assign_vector(String v, String e){
+      
+      String id = v.substring(0,v.indexOf("["));
+
+      if(! symT.containsKey(id)) {
+         report_fatal_error("Variavel nao declarada: " + id + "[]", null);
+      } 
+      
+      System.out.print(v+"="+e+";\n");
+   }
+
 
    public String filtro(String v){
 
-      if(symT.containsKey(v)){
+      String id = v.substring(0,v.indexOf("["));
+      
+      if(symT.containsKey(id)){
+         symT.put(v,new table_symbol(symT.get(id).getTipo()));
          return v;
-      } 
+      
+      } else {
+         report_fatal_error("Vetor não declarado " + id, null);
+      }
 
-      symT.put(v,new table_symbol("vetor"));
+      return null; 
 
-      return v;
    }
+
 
    public void declare_param(String t, String id){
 
       symT.put(id,new table_symbol(t));
    }
 
+
+   public void emit_declare_func(String t, String id){
+      
+      if(symT.containsKey(id)) {
+         report_fatal_error("Função duplicada: " + id, null);
+      } 
+
+      symT.put(id,new table_symbol(t));
+
+   }
+
+
+   public String chamafunc_validation(String f){
+
+      String id = f.substring(0,f.indexOf("("));
+      if( !symT.containsKey( id ) ) {
+         report_fatal_error("Função não declarada: " + id, null);
+      }
+
+      symT.put( f, new table_symbol( symT.get(id).getTipo() ) );
+
+      return f;
+   }
 
 :};
    
@@ -354,10 +400,11 @@ terminal String     INTT;        // our scanner provides numbers as integers
 terminal String     FLOATT;
 
 /* Non terminals */
-non terminal            s, program, list_command, command, assign , writel, readl, declare_variable, iff, for, while, list_param, param, listafuncao, func, chamafunc, vetor_list;
-non terminal  String    expr, expr_list, vetor, tipo;      // used to store evaluated subexpressions
+non terminal            s, program, list_command, command, assign , writel, readl, declare_variable, iff, for, while, param, listafuncao, func;
+non terminal  String    expr, expr_list, vetor, tipo, list_param, chamafunc;      // used to store evaluated subexpressions
 
 /* Precedences */
+
 
 precedence left FUNCAO, PROGRAM;
 precedence left DECLINT, DECLFLOAT;
@@ -370,8 +417,9 @@ precedence left GREATER, LESS;
 precedence left PLUS, MINUS;
 precedence left TIMES, DIVIDE;
 precedence left LPAREN, RPAREN;
-precedence left LBRCKT, RBRCKT; 
+precedence left LBRCKT, RBRCKT;
 precedence left E, OU, NAO;
+
 
 
 
@@ -385,9 +433,9 @@ listafuncao ::=  listafuncao func
                | /* empty */
                ;            
 
-func  ::=     FUNCAO tipo ID:id {: System.out.print(id+"("); :}
-              LPAREN list_param RPAREN
-              STARTFUNC {: System.out.println("){"); POS++; :}
+func  ::=     FUNCAO tipo:t ID:id {: System.out.print( id + "( ");:} 
+              LPAREN list_param:p RPAREN
+              STARTFUNC {: System.out.println("){"); emit_declare_func(t,id); POS++; :}
               list_command
               RETORNO expr:value SEMI
               ENDFUNC {: format_code(); System.out.println("return " + value + ";\n}\n"); POS--; :}
@@ -402,6 +450,11 @@ func  ::=     FUNCAO tipo ID:id {: System.out.print(id+"("); :}
 list_param ::= {: if(flag != 0) System.out.print(","); flag = 1; :} param list_param
                | /* empty */{: flag = 0; :}
                ;
+
+param ::=     tipo:t ID:id {: declare_param(t,id); System.out.print(id+" "); :}
+            | tipo vetor
+            ;
+
 
 program ::= {: emit_program();               :}
             listafuncao
@@ -422,7 +475,7 @@ command ::=    declare_variable
             |  iff               
             |  for
             |  while
-            |  chamafunc:f {: format_code(); System.out.println(f+";");:}
+            |  chamafunc:f SEMI{: format_code(); System.out.println(f+";");:}
             ;
 
 writel      ::= WRITELINE
@@ -440,7 +493,7 @@ iff         ::= IFF
                 list_command     
                 ELSEE            {: POS--; format_code(); emit_endprg(); format_code(); emit_else(); POS++; :}
                 list_command
-                ENDELSE          {:POS--; format_code(); System.out.print("}\n"); :}
+                ENDELSE          {: POS--; format_code(); System.out.print("}\n"); :}
                
             ;
 
@@ -459,10 +512,6 @@ while       ::= ENQUANTO expr:e
                 FIMENQUANTO   {: POS--; format_code(); emit_endprg(); :}
             ;
 
-param ::=     tipo:t ID:id {: declare_param(t,id); System.out.print(id+" "); :}
-            | tipo vetor
-            ;
-
 tipo ::=      DECLINT:t   {: RESULT = "INT"  ; format_code();  emit_inteiro();   :}
             | DECLFLOAT:t {: RESULT = "FLOAT"; format_code();  emit_flutuante(); :}
             ;
@@ -475,9 +524,9 @@ declare_variable ::=  tipo:t  ID:id
                       SEMI         {: emit_semi(); :}
                     | tipo:t ID:id {: emit_declare_variable_without_value(id,t); :} 
                       SEMI         {: emit_semi();  :}
-                    | tipo:t ID:id 
+                    /* | tipo:t ID:id 
                       ATTRIB       
-                      chamafunc:f    {: emit_declare_variable_without_value(id,t); System.out.print("=" +f+";\n"); :} 
+                      chamafunc:f SEMI   {: emit_declare_variable_without_value(id,t); System.out.print("=" +f+";\n"); :}  */
                     | tipo:t ID:id LBRCKT INTT:i RBRCKT SEMI {: emit_declare_vector(t,id,i); emit_semi(); :}
                     ;
 
@@ -485,24 +534,19 @@ declare_variable ::=  tipo:t  ID:id
 assign		::=   ID:id 
                   ATTRIB 
                   expr:value        {: format_code(); emit_assign_id_expr(id,value); :} 
-                  SEMI              {: emit_semi(); :}
-                | ID
-                  ATTRIB
-                  chamafunc 
+                  SEMI              {: emit_semi(); :}                
                 | vetor:v
                   ATTRIB
-                  expr:e SEMI {: format_code(); emit_assign_vector(v,e); :}
-                | vetor:v
-                  ATTRIB
-                  chamafunc
+                  expr:e SEMI       {: format_code(); emit_assign_vector(v,e);:} 
                 ;
+
 
 chamafunc ::=    ID:id LPAREN 
                  expr_list:e RPAREN 
-                 SEMI {: RESULT = id + "("+ e +")"; :}
+                 {: RESULT = id + "("+ e +")"; :}
                | ID:id LPAREN 
-                 RPAREN SEMI {: RESULT = id + "()"; :}
-               | ID:id LPAREN vetor:v RPAREN  SEMI {: RESULT = id+"(" + v + ")";:}
+                 RPAREN {: RESULT = id + "()"; :}
+               | ID:id LPAREN vetor:v RPAREN {: RESULT = id+"(" + v + ")"; :}
                ;
 
 vetor ::= vetor:v ID:id LBRCKT INTT:i RBRCKT 
@@ -510,10 +554,9 @@ vetor ::= vetor:v ID:id LBRCKT INTT:i RBRCKT
          | ID:id LBRCKT INTT:i RBRCKT {: RESULT = id+"["+i+"]"; :}
        ;
 
-expr_list ::= expr_list:e1  expr:e {:RESULT = e1 +","+ e;:}
+expr_list ::= expr_list:e1  expr:e {: RESULT = e1 +","+ e; :}
 	         | expr:e {:RESULT = e;:}
             ;
-
 
 
 expr     ::= expr:e1  PLUS  expr:e2       {: RESULT =  e1 + "+" + e2;  symT.put(RESULT,new table_symbol(check_expr(e1,e2),RESULT));  :}
@@ -533,4 +576,5 @@ expr     ::= expr:e1  PLUS  expr:e2       {: RESULT =  e1 + "+" + e2;  symT.put(
            | vetor:v                      {: RESULT = filtro(v);                                         :}
            | INTT: n                      {: RESULT = n;  symT.put(n,new table_symbol("INT",n));                  :}
            | FLOATT:n                     {: RESULT = n;  symT.put(n,new table_symbol("FLOAT",n));                :}
-	        ;	  
+	        | chamafunc:f                  {: RESULT = chamafunc_validation(f); :}
+           ;	  

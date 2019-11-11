@@ -6,12 +6,21 @@ funcaoinicio
     retorno 2+1;
 funcaofim
 
+funcao inteiro teste2( inteiro fg flutuante bg)
+funcaoinicio
+    flutuante num2;
+    leia num2;
+    escreva num2;
+    retorno 2+1;
+funcaofim
+
 programa
 inicio
+   /* ola */ 
     inteiro numero ;
     inteiro i;
     leia numero;
-    
+    i <- teste(1 2);
     para i de 1 ate 5 passo 1 faca
     escreva i;
     escreva numero;
@@ -26,22 +35,30 @@ inicio
     flutuante m1;
     flutuante a1;
     inteiro paulo;
-    inteiro aj <- f( a + b);
+    inteiro aj <- teste(3 5) + 2;
     flutuante jk[50];
-    jk[2] <- 2;
-    se((jk[2] + jk[1])>3) entao 
-        escreva a;
-    senao
-        escreva b;
-        escreva c;
-    fimse
+    jk[1] <- teste(2 3);
+    escreva jk[1];
+    inteiro p;
+    flutuante r;
+    inteiro q;
+
+    se jk[1] > q entao
+	   escreva r ;
+      se r = 5.8 entao
+         escreva p ;
+      senao
+         escreva q ;
+      fimse
+   senao
+	   escreva r / 2 ;
+   fimse
 
     enquanto (a > c e b > c) ou c > a faca
       escreva a * 10 ;
       a <- a - 1 ;
     fimenquanto
     paulo <- 3;
-    lp[2] <- 5;
     a <- 9;
     d <- a * b - m;
 

@@ -1,10 +1,17 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-int teste(int fg ,float bg ){
+int teste( int fg ,float bg ){
    float num1;
    scanf("%f",&num1);
    printf("\n%f",num1);
+   return 2+1;
+}
+
+int teste2( int fg ,float bg ){
+   float num2;
+   scanf("%f",&num2);
+   printf("\n%f",num2);
    return 2+1;
 }
 
@@ -12,6 +19,7 @@ int main(){
    int numero;
    int i;
    scanf("%d",&numero);
+   i=teste(1,2);
    for(i=1;i<5;i+=1){
       printf("\n%d",i);
       printf("\n%d",numero);
@@ -26,22 +34,30 @@ int main(){
    float m1;
    float a1;
    int paulo;
-   int aj=f(a+b);
+   int aj=teste(3,5)+2;
    float jk[50];
-   jk[2]=2;
-   if(((jk[2]+jk[1])>3)){
-      printf("\n%d",a);
+   jk[1]=teste(2,3);
+   printf("\n%f",jk[1]);
+   int p;
+   float r;
+   int q;
+   if(jk[1]>q){
+      printf("\n%f",r);
+      if(r==5.8){
+         printf("\n%d",p);
+      }
+      else{
+         printf("\n%d",q);
+      }
    }
    else{
-      printf("\n%d",b);
-      printf("\n%d",c);
+      printf("\n%f",r/2);
    }
    while((a>c&&b>c)||c>a){
       printf("\n%f",a*10);
       a=a-1;
    }
    paulo=3;
-   lp[2]=5;
    a=9;
    d=a*b-m;
    m1=f1*2;

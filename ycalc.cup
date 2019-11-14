@@ -34,6 +34,8 @@ parser code {:
 
        private String tipo;
        private String valor;
+       private int escopo;
+       private boolean funcao = false;
 
        table_symbol(String tipo, String valor){
           this.tipo = tipo;
@@ -43,6 +45,17 @@ parser code {:
          table_symbol(String tipo){
           this.tipo = tipo;
        }
+      
+      table_symbol(String tipo, int escopo){
+         this.tipo = tipo;
+         this.escopo = escopo;
+      }
+      
+      table_symbol(String tipo, boolean funcao){
+         this.funcao = funcao;
+         this.tipo = tipo;
+         this.escopo = escopo;
+      }
 
        public String getTipo(){
           return tipo;
@@ -56,7 +69,14 @@ parser code {:
           this.valor = valor;
        }
 
-  }
+      public int getEscopo(){
+         return escopo;
+      }
+
+      public boolean getFunc(){
+         return funcao;
+      }
+  }   
 
 /** table of declared symbols -- contains production parts indexed by name */
    private Hashtable<String, table_symbol> symT = new Hashtable<String, table_symbol>();
@@ -64,6 +84,7 @@ parser code {:
    private static final String RIGHT_PAR = ")";
    private int POS = 0;
    private int flag = 0;
+   private int escopo = 1;
     /* Change the method report_error so it will display the line and
        column of where the error occurred in the input as well as the
        reason for the error which is passed into the method in the
@@ -137,6 +158,9 @@ parser code {:
       if(! symT.containsKey(e1)) {
            report_fatal_error("Variavel nao declarada: " + e1, null);
       }   
+      
+    /*  if( symT.get(e1).getFunc() )
+         report_fatal_error("Variavel é uma função: " + id, null); */
 
       if(e2 == null){
          table_symbol te1 = symT.get(e1);
@@ -145,8 +169,11 @@ parser code {:
       } else {
 
          if(! symT.containsKey(e2)) {
-           report_fatal_error("Variavel nao declarada: " + e1, null);
+           report_fatal_error("Variavel nao declarada: " + e2, null);
          }
+
+        /*  if( symT.get(e2).getFunc() )
+            report_fatal_error("Variavel é uma função: " + id, null); */
          
          table_symbol te1 = symT.get(e1);
          table_symbol te2 = symT.get(e2);
@@ -200,20 +227,20 @@ parser code {:
     public void emit_declare_variable_with_value(String id, String value, String tipo){
 
        if(symT.containsKey(id)){
-          report_fatal_error("Variável duplicada [" + id + "]",null);
+          report_fatal_error("Variável duplicada: " + id,null);
        }
-       symT.put(id,new table_symbol(tipo,value));
+       symT.put(id,new table_symbol(tipo,escopo));
        System.out.print(id + "=" + value); 
               
     }
 
     public void emit_declare_variable_without_value(String id, String tipo){
-
       if(symT.containsKey(id)){
-          report_fatal_error("Variável duplicada [" + id + "]",null);
+
+          report_fatal_error("Variável duplicada: " + id,null);
        } 
 
-       symT.put(id,new table_symbol(tipo));
+       symT.put(id,new table_symbol(tipo,escopo));
        System.out.print(id); 
     }
 
@@ -222,6 +249,8 @@ parser code {:
        if(! symT.containsKey(id)) {
            report_fatal_error("Variavel nao declarada: " + id, null);
       } else {    
+            if( symT.get(id).getFunc() )
+               report_fatal_error("Variavel é uma função: " + id, null);
 
             System.out.print(id + "=" + value); 
             update_symT(id,value);
@@ -360,7 +389,11 @@ parser code {:
 
    public void declare_param(String t, String id){
 
-      symT.put(id,new table_symbol(t));
+      if(symT.containsKey(id)) {
+         report_fatal_error("Variável duplicada: " + id, null);
+      } 
+
+      symT.put(id,new table_symbol(t,escopo));
    }
 
 
@@ -370,7 +403,7 @@ parser code {:
          report_fatal_error("Função duplicada: " + id, null);
       } 
 
-      symT.put(id,new table_symbol(t));
+      symT.put(id,new table_symbol(t,true));
 
    }
 
@@ -382,9 +415,27 @@ parser code {:
          report_fatal_error("Função não declarada: " + id, null);
       }
 
+      if(! symT.get(id).getFunc() )
+         report_fatal_error("Função não declarada: " + id, null);
+
       symT.put( f, new table_symbol( symT.get(id).getTipo() ) );
 
       return f;
+   }
+
+   public void limpar_escop(){
+
+      ArrayList<String> lista = new ArrayList<String>();
+      symT.forEach( (k,v) -> { 
+         if(v.getEscopo() == escopo){
+            lista.add(k);
+         }   
+      });
+
+      lista.forEach( (k) -> {
+         symT.remove(k);
+      });
+
    }
 
 :};
@@ -434,16 +485,18 @@ listafuncao ::=  listafuncao func
                ;            
 
 func  ::=     FUNCAO tipo:t ID:id {: System.out.print( id + "( ");:} 
-              LPAREN list_param:p RPAREN
+              LPAREN list_param RPAREN
               STARTFUNC {: System.out.println("){"); emit_declare_func(t,id); POS++; :}
               list_command
-              RETORNO expr:value SEMI
-              ENDFUNC {: format_code(); System.out.println("return " + value + ";\n}\n"); POS--; :}
-            | FUNCAO ID
+              RETORNO expr:value SEMI {: format_code(); System.out.println("return " + value + ";\n}\n"); POS--; :}
+              ENDFUNC 
+              {: limpar_escop();:}
+            | FUNCAO ID:id {: System.out.print( "void " + id + "( "); :}
               LPAREN list_param RPAREN
-              STARTFUNC
+              STARTFUNC {: System.out.println("){"); emit_declare_func("void",id); POS++; :}
               list_command
-              ENDFUNC
+              ENDFUNC {: format_code(); System.out.println("\n}\n"); POS--; :}
+              {: limpar_escop(); :}
             ;
 
          
@@ -459,9 +512,10 @@ param ::=     tipo:t ID:id {: declare_param(t,id); System.out.print(id+" "); :}
 program ::= {: emit_program();               :}
             listafuncao
             PROGRAM      
-            STARTPRG    {: emit_startprogram() ; POS++;  :} 
+            STARTPRG    {: escopo++; emit_startprogram() ; POS++;  :} 
             list_command 
             ENDPRG       {: format_code(); emit_return(); POS--; format_code(); emit_endprg() ;        :}
+            {: limpar_escop(); escopo--; :}
             ;
 
 list_command ::= list_command command

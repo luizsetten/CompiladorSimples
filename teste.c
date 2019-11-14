@@ -1,46 +1,48 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-int teste( int fg ,float bg ){
-   float num1;
-   scanf("%f",&num1);
-   printf("\n%f",num1);
-   return 2+1;
+int a( int x ,int y ){
+   return a(1,2);
 }
 
-int teste2( int fg ,float bg ){
-   float num2;
-   scanf("%f",&num2);
-   printf("\n%f",num2);
-   return 2+1;
+float b( ){
+   return b();
+}
+
+void c( float z ){
+   int m;
+   int n;
+   while((z>m&&z<n)||(m*n)>z){
+      z=z-1;
+   }
+   
+}
+
+void d( ){
+   int o;
+   for(o=1;o<10;o+=1){
+      printf("\n%d",o);
+   }
+   
 }
 
 int main(){
-   int numero;
-   int i;
-   scanf("%d",&numero);
-   i=teste(1,2);
-   for(i=1;i<5;i+=1){
-      printf("\n%d",i);
-      printf("\n%d",numero);
-   }
-   printf("\n%d",numero);
-   int a;
-   int b=4;
-   int c=6;
-   int d=c*2;
-   int m=b+c+d;
-   float f1=3.14;
-   float m1;
-   float a1;
-   int paulo;
-   int aj=teste(3,5)+2;
-   float jk[50];
-   jk[1]=teste(2,3);
-   printf("\n%f",jk[1]);
-   int p;
+   int p[10];
+   int q=6;
    float r;
-   int q;
+   p[1]=5;
+   p=q/(5+1);
+   r=2.6*(r-2);
+   printf("\n%f",(p+q)*p);
+   printf("\n%f",r+2+c);
+   int t;
+   t=83+2+5+6+8+0;
+   t=t+3;
+   int g;
+   int h;
+   scanf("%d",&g);
+   scanf("%d",&h);
+   int jk[10];
    if(jk[1]>q){
       printf("\n%f",r);
       if(r==5.8){
@@ -53,24 +55,21 @@ int main(){
    else{
       printf("\n%f",r/2);
    }
-   while((a>c&&b>c)||c>a){
-      printf("\n%f",a*10);
-      a=a-1;
+   int s;
+   a(p);
+   s=a();
+   c(r);
+   d();
+   int numero;
+   scanf("%d",&numero);
+   printf("\n%d",numero);
+   int i;
+   for(i=1;i<10;i+=1){
+      printf("\n%d",i);
    }
-   paulo=3;
-   a=9;
-   d=a*b-m;
-   m1=f1*2;
-   printf("\n%d",a);
-   printf("\n%f",f1);
-   printf("\n%d",5);
-   printf("\n%f",8.7);
-   printf("\n%f",a*b-f1);
-   printf("\n%f",b+c-(b/c*d+!c));
-   printf("\n%f",m1+d);
-   printf("\n%d",paulo);
-   printf("\n%d",d);
-   d=!a;
-   printf("\n%d",d);
+   while((i>c&&b>c)||c>i){
+      printf("\n%f",i*10);
+      i=i-1;
+   }
    return 0;
 }

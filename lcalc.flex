@@ -99,7 +99,7 @@ commentinicio   = \/\*
 commentfim      = \*\/
 naocommentfim   = [^\*\/]
 commentbody     = {naocommentfim}*
-comment =  {commentinicio}{commentbody}{commentfim} | \/\/[^\n]*
+comment =  \/\*([^\*]*[^\/]*)\*\/ | \/\/[^\n]*
 
 %%
 /* ------------------------Lexical Rules Section---------------------- */

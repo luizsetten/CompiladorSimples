@@ -19,9 +19,10 @@ funcaofim
 
 funcao d ()
 funcaoinicio
+   inteiro i;
    inteiro o[10];
-   para o de 1 ate 10 passo 1 faca
-     escreva o ;
+   para i de 1 ate 10 passo 1 faca
+     escreva o[i] ;
    fimpara
 funcaofim
 
@@ -84,7 +85,7 @@ inicio
       escreva i ;
     fimpara
 
-   enquanto (i > b e b > i) ou i > i faca
+   enquanto (i > 10 e b() > i) ou i > i faca
       escreva i * 10 ;
       i <- i - i - 1 ;
     fimenquanto

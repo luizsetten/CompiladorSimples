@@ -590,9 +590,9 @@ chamafunc ::=    ID:id LPAREN
                | ID:id LPAREN vetor:v RPAREN {: RESULT = id+"(" + v + ")"; :}
                ;
 
-vetor ::= vetor:v ID:id LBRCKT INTT:i RBRCKT 
+vetor ::= vetor:v ID:id LBRCKT expr:i RBRCKT 
          {: if(v!=null) RESULT = v + ", " + id+"["+i+"]"; else RESULT = id+"["+i+"]"; :}
-         | ID:id LBRCKT INTT:i RBRCKT {: RESULT = id+"["+i+"]"; :}
+         | ID:id LBRCKT expr:i RBRCKT {: RESULT = id+"["+i+"]"; :}
        ;
 
 expr_list ::= expr_list:e1  expr:e {: RESULT = e1 +","+ e; :}

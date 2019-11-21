@@ -19,9 +19,10 @@ void c( float z ){
 }
 
 void d( ){
+   int i;
    int o[10];
-   for(o=1;o<10;o+=1){
-      printf("\n%d",o);
+   for(i=1;i<10;i+=1){
+      printf("\n%d",o[i]);
    }
    
 }
@@ -66,3 +67,9 @@ int main(){
    for(i=1;i<10;i+=1){
       printf("\n%d",i);
    }
+   while((i>10&&b()>i)||i>i){
+      printf("\n%f",i*10);
+      i=i-i-1;
+   }
+   return 0;
+}

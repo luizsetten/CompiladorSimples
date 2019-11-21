@@ -426,6 +426,7 @@ public class parser extends java_cup.runtime.lr_parser {
       private String valor;
       private int escopo;
       private boolean funcao = false;
+      private boolean vetor = false;
 
       table_symbol(String tipo, String valor){
          this.tipo = tipo;
@@ -440,11 +441,22 @@ public class parser extends java_cup.runtime.lr_parser {
          this.tipo = tipo;
          this.escopo = escopo;
       }
+
+      table_symbol(String tipo, int escopo, boolean vetor){
+         this.tipo = tipo;
+         this.escopo = escopo;
+         this.vetor = vetor;
+      }
       
       table_symbol(String tipo, boolean funcao){
          this.funcao = funcao;
+         this.vetor = vetor;
          this.tipo = tipo;
          this.escopo = escopo;
+      }
+
+      public boolean getIsVector(){
+         return this.vetor;
       }
 
       public String getTipo(){
@@ -552,11 +564,18 @@ public class parser extends java_cup.runtime.lr_parser {
       if( symT.get(e1).getFunc() )
          report_fatal_error("Variavel é uma função: " + e1, null);
 
+
+      if( symT.get(e1).getIsVector() )
+            report_fatal_error("Variavel é uma vetor: " + e1 + "\nFalta []", null);
+
       if(e2 == null){
          table_symbol te1 = symT.get(e1);
          String tp1 = te1.getTipo();
          res = tp1;
       } else {
+
+         if( symT.get(e2).getIsVector() )
+            report_fatal_error("Variavel é uma vetor: " + e2 + "\nFalta []", null);
 
          if(! symT.containsKey(e2)) 
             report_fatal_error("Variavel nao declarada: " + e2, null);
@@ -577,7 +596,7 @@ public class parser extends java_cup.runtime.lr_parser {
             res =  "FLOAT";
          }
       }
-   return "FLOAT";
+   return res;
 }
 
 
@@ -641,6 +660,8 @@ public class parser extends java_cup.runtime.lr_parser {
       } else {    
          if( symT.get(id).getFunc() )
             report_fatal_error("Variavel é uma função: " + id, null);
+         if( symT.get(id).getIsVector() )
+            report_fatal_error("Variavel é uma vetor: " + id + "\nFalta []", null);
 
          System.out.print(id + "=" + value); 
          update_symT(id,value);
@@ -660,12 +681,12 @@ public class parser extends java_cup.runtime.lr_parser {
          report_fatal_error("Variavel nao declarada: " + id, null);
       } else {    
 
-         String tipo = (symT.get(id)).getTipo();
+         String tipo = symT.get(id).getTipo();
 
          if(tipo.equals("INT")) {
-            System.out.print("printf(\"\\n%d\"," + id + ")") ;
+            System.out.print("printf(\"%d\\n\"," + id + ")") ;
          } else {
-            System.out.print("printf(\"\\n%f\"," + id + ")");
+            System.out.print("printf(\"%f\\n\"," + id + ")");
          }   
       }
    }
@@ -729,7 +750,7 @@ public class parser extends java_cup.runtime.lr_parser {
          report_fatal_error("Variável duplicada: " + id, null);
       } 
 
-      symT.put(id,new table_symbol(t,escopo));
+      symT.put(id,new table_symbol(t,escopo, true));
       System.out.print(id + "["+i+"]");
 
    }
@@ -741,8 +762,8 @@ public class parser extends java_cup.runtime.lr_parser {
 
       if(! symT.containsKey(id)) {
          report_fatal_error("Vetor não declarado: " + id + "[]", null);
-      } 
-      
+      }
+
       System.out.print(v+"="+e+";\n");
    }
 

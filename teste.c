@@ -1,75 +1,37 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-int a( int x ,int y ){
-   return a(1,2);
-}
-
-float b( ){
-   return b();
-}
-
-void c( float z ){
-   int m;
-   int n;
-   while((z>m&&z<n)||(m*n)>z){
-      z=z-1;
-   }
-   
-}
-
-void d( ){
-   int i;
-   int o[10];
-   for(i=1;i<10;i+=1){
-      printf("\n%d",o[i]);
-   }
-   
+int soma( int a ,int b ){
+   return a+b;
 }
 
 int main(){
-   int p[10];
-   int q=6;
-   float r;
-   p[1]=5;
-   p=q/(5+1);
-   r=2.6*(r-2);
-   printf("\n%f",(p+q)*p);
-   int t;
-   t=83+2+5+6+8+0;
-   t=t+3;
-   int g;
-   int h;
-   scanf("%d",&g);
-   scanf("%d",&h);
-   int jk[10];
-   if(jk[1]>q){
-      printf("\n%f",r);
-      if(r==5.8){
-         printf("\n%d",p);
-      }
-      else{
-         printf("\n%d",q);
-      }
+   printf("%d\n",soma(1,2));
+   int a;
+   int b;
+   scanf("%d",&a);
+   scanf("%d",&b);
+   if(a>b){
+      printf("%d\n",a);
    }
    else{
-      printf("\n%f",r/2);
+      printf("%d\n",b);
    }
-   int s;
-   a(p);
-   s=a();
-   c(r);
-   d();
-   int numero;
-   scanf("%d",&numero);
-   printf("\n%d",numero);
    int i;
-   for(i=1;i<10;i+=1){
-      printf("\n%d",i);
+   for(i=0;i<10;i+=2){
+      printf("%d\n",i);
    }
-   while((i>10&&b()>i)||i>i){
-      printf("\n%f",i*10);
-      i=i-i-1;
+   int c=0;
+   while(c<100){
+      c=c+1;
+   }
+   printf("%d\n",c);
+   int p[6];
+   for(i=0;i<6;i+=1){
+      p[i]=i*2;
+   }
+   for(i=0;i<6;i+=1){
+      printf("%d\n",p[i]);
    }
    return 0;
 }

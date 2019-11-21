@@ -1,97 +1,42 @@
-funcao inteiro a (inteiro x inteiro y)
+funcao inteiro soma(inteiro a inteiro b )
 funcaoinicio
-   retorno a(1 2) ;
-funcaofim
-
-funcao flutuante b ()
-funcaoinicio
-   retorno b();
-funcaofim
-
-funcao c (flutuante z)
-funcaoinicio
-   inteiro m;
-   inteiro n;
-   enquanto (z > m e z < n) ou (m * n) > z faca
-     z <- z - 1 ;
-   fimenquanto
-funcaofim
-
-funcao d ()
-funcaoinicio
-   inteiro i;
-   inteiro o[10];
-   para i de 1 ate 10 passo 1 faca
-     escreva o[i] ;
-   fimpara
+  retorno a+b;
 funcaofim
 
 programa
 inicio
-   //o[1] <- 2;
-   inteiro p[10] ;
-   inteiro q <- 6 ;
-   flutuante r ;
-   p[1] <- 5 ;
 
-   //flutuante s <- t1(p[5] t[2]) ;
+   escreva soma(1 2);
+  
+   inteiro a;
+   inteiro b;
+   leia a;
+   leia b;
 
-   //p[10] <- f() ;
-
-   p <- q / (5 + 1) ;
-   r <- 2.6 * (r - 2) ;
-    
-   escreva (p + q) * p ;
-  // escreva r + 2 + c ;
-   
-   inteiro t;
-
-   t <- 83 + 2 + 5 + 6 + 8 + 0 ;
-   t <- t + 3 ;
-
-   inteiro g;
-   inteiro h;
-
-   leia g ;
-   leia h  ;
-
-   //a <- a + b ;
-
-   inteiro jk[10];
-
-   se jk[1] > q entao
-	   escreva r ;
-      se r = 5.8 entao
-         escreva p ;
-      senao
-         escreva q ;
-      fimse
+   se a > b entao
+      escreva a;
    senao
-	   escreva r / 2 ;
+      escreva b;
    fimse
 
-   inteiro s;
+   inteiro i;
+   para i de 0 ate 10 passo 2 faca
+      escreva i;
+   fimpara
    
-    a (p) ;
-    s <- a() ;
-   // inteiro s <- b () ;
-    c (r) ;
-    d () ;
-    inteiro numero ;
-    leia numero ;
-    escreva numero ;
-    inteiro i;
-    para i de 1 ate 10 passo 1 faca
-      escreva i ;
-    fimpara
+   inteiro c <- 0;
+   enquanto c < 100 faca
+      c <- c + 1;
+   fimenquanto
+   escreva c;
 
-   enquanto (i > 10 e b() > i) ou i > i faca
-      escreva i * 10 ;
-      i <- i - i - 1 ;
-    fimenquanto
-   
-    // oi
+   inteiro p[6];
+   para i de 0 ate 6 passo 1 faca
+      p[i] <- i * 2;
+   fimpara
 
-    /* teste comment */
-   
+   para i de 0 ate 6 passo 1 faca
+      escreva p[i];
+   fimpara
+
 fim
